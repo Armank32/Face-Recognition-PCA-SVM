@@ -1,25 +1,30 @@
-Face Recognition Using PCA and SVM
+# Face Recognition Using PCA and SVM
 
-This project implements a face recognition system using Principal Component Analysis (PCA) and a non-linear Support Vector Machine (SVM). The goal is to classify individuals based on facial images by first reducing the dimensionality of the image data and then training a classifier.
+This project implements a face recognition system using **Principal Component Analysis (PCA)** and a **non-linear Support Vector Machine (SVM)**. The goal is to classify individuals based on facial images by first reducing the dimensionality of the image data and then training a classifier.
 
-The project uses the AT&T Face Dataset, which contains grayscale face images of multiple individuals.
+The project uses the **AT&T Face Dataset**, which contains grayscale face images of multiple individuals.
 
-Dataset
+---
 
-The dataset comes from the AT&T Laboratories Cambridge Face Database.
+## Dataset
 
-Dataset characteristics
+The dataset comes from the [AT&T Laboratories Cambridge Face Database](https://git-disl.github.io/GTDLBench/datasets/att_face_dataset/).
 
-• 400 total images
-• 40 individuals
-• 10 images per person
-• Image size: 64 × 64 pixels
-• 4096 features per image when flattened
+**Dataset characteristics:**
 
-Each image is labeled with the person ID in label.csv.
+| Property | Value |
+|---|---|
+| Total images | 400 |
+| Individuals | 40 |
+| Images per person | 10 |
+| Image size | 64 × 64 pixels |
+| Features per image (flattened) | 4,096 |
 
-Dataset folder structure used in this project:
+Each image is labeled with the person ID in `label.csv`.
 
+**Folder structure:**
+
+```
 Face_Project/
 │
 ├── Face/
@@ -30,136 +35,103 @@ Face_Project/
 │   └── label.csv
 │
 └── Face_Recognition.ipynb
-Methodology
+```
 
-The face recognition pipeline consists of the following steps.
+---
 
-1. Feature Extraction
+## Methodology
 
-Each image is treated as a data sample.
+### 1. Feature Extraction
 
-Since images are 64 × 64 pixels, each image is converted into a 4096 dimensional feature vector by flattening the pixel matrix.
+Each 64 × 64 image is flattened into a **4,096-dimensional feature vector**.
 
-64 × 64 = 4096 features
-2. Data Normalization
+### 2. Data Normalization
 
-Before dimensionality reduction, each feature column is normalized using:
+Each feature column is standardized using `sklearn.preprocessing.scale` so that every pixel feature has **mean = 0** and **standard deviation = 1**. This is important because both PCA and SVM are sensitive to feature scale.
 
-sklearn.preprocessing.scale
+### 3. Train/Test Split
 
-This standardizes each pixel feature so that:
+The dataset is split with `test_size=0.25` and `random_state=5`:
 
-mean = 0
-standard deviation = 1
+| Set | Samples |
+|---|---|
+| Training | 300 |
+| Testing | 100 |
 
-Normalization is important because PCA and SVM are sensitive to feature scale.
+### 4. Dimensionality Reduction (PCA)
 
-3. Train/Test Split
+PCA reduces the feature space from 4,096 down to **50 principal components**.
 
-The dataset is split into training and testing sets using:
+> **Important:** PCA is fit only on the training set, then applied to both sets.
 
-test_size = 0.25
-random_state = 5
-
-Resulting dataset sizes:
-
-Dataset	Samples
-Training	300
-Testing	100
-4. Dimensionality Reduction using PCA
-
-The original feature dimension is 4096, which is very high.
-
-Principal Component Analysis (PCA) is used to reduce the dimensionality to:
-
-k = 50 principal components
-
-Important implementation detail:
-
-PCA is fit only on the training set, then applied to both training and testing data.
-
+```python
 X_Train_new = my_pca.fit_transform(X_Train)
-X_Test_new = my_pca.transform(X_Test)
+X_Test_new  = my_pca.transform(X_Test)
+```
 
-After PCA:
+### 5. Classification (SVM)
 
-Dataset	Features
-Training	50
-Testing	50
-5. Face Classification using SVM
+A non-linear SVM with an **RBF kernel** is used for classification:
 
-A non-linear Support Vector Machine (SVM) with an RBF kernel is used for classification.
+```python
+SVC(C=1, kernel='rbf', gamma=0.0005, random_state=1)
+```
 
-Model parameters:
+Performance is evaluated using **accuracy** and a **confusion matrix**.
 
-SVC(
-    C=1,
-    kernel='rbf',
-    gamma=0.0005,
-    random_state=1
-)
+### 6. Hyperparameter Optimization
 
-The trained SVM predicts the identity of individuals in the testing dataset.
+`GridSearchCV` is used to find the best regularization parameter `C`:
 
-Performance is evaluated using:
-
-• Accuracy
-• Confusion Matrix
-
-6. Hyperparameter Optimization
-
-To improve performance, GridSearchCV is used to find the best value of the regularization parameter C.
-
-Search space:
-
+```python
 C = [0.1, 1, 10, 100, 1e3, 5e3, 1e4, 5e4, 1e5]
+```
 
-The grid search uses:
+- **Cross-validation:** 10-fold
+- **Scoring metric:** accuracy
 
-10-fold cross-validation
-scoring = 'accuracy'
+> **Note:** Before GridSearchCV, PCA is performed on the entire normalized dataset, as specified in the assignment instructions.
 
-Before GridSearchCV, PCA is performed on the entire normalized dataset, as specified in the assignment instructions.
+---
 
-Technologies Used
+## Technologies Used
 
-Python
-NumPy
-Pandas
-Matplotlib
-Scikit-learn
+- Python
+- NumPy
+- Pandas
+- Matplotlib
+- Scikit-learn (PCA, SVM, GridSearchCV)
 
-Main algorithms:
+---
 
-• Principal Component Analysis (PCA)
-• Support Vector Machine (SVM)
-• GridSearchCV
+## How to Run
 
-How to Run the Project
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git
+   ```
 
-Clone the repository
+2. **Navigate to the project directory**
+   ```bash
+   cd YOUR_REPO_NAME
+   ```
 
-git clone https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git
+3. **Install required packages**
+   ```bash
+   pip install numpy pandas matplotlib scikit-learn
+   ```
 
-Navigate to the project directory
+4. **Open and run the notebook**
+   ```bash
+   jupyter notebook Face_Recognition.ipynb
+   ```
 
-cd YOUR_REPO_NAME
+---
 
-Install required packages
-
-pip install numpy pandas matplotlib scikit-learn
-
-Open the Jupyter notebook
-
-jupyter notebook
-
-Run
-
-Face_Recognition.ipynb
-Example Output
+## Example Output
 
 The notebook outputs:
 
-• Test accuracy of the SVM classifier
-• Confusion matrix for the 40-class classification problem
-• Best value of C found using GridSearchCV
+- Test accuracy of the SVM classifier
+- Confusion matrix for the 40-class classification problem
+- Best value of `C` found using GridSearchCV
